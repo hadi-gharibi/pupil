@@ -1,0 +1,4 @@
+---
+db_name: faiss
+  nlist: 100
+  nprobe: 5
