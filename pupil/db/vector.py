@@ -18,9 +18,6 @@ class BaseVectorDB(ABC):
     def add(self):
         pass
 
-    @abstractmethod
-    def add_batch(self):
-        pass
 
 
 class Faiss(BaseVectorDB):
