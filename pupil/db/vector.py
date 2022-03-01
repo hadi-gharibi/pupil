@@ -30,8 +30,8 @@ class Faiss(BaseVectorDB):
     def train(self, embs: np.Array) -> None:
         self.train(embs)
 
-    def add(self, emb:np.Array) -> None:
-        self.index(emb)
+    def add(self, emb: np.Array) -> None:
+        self.index.add(emb)
 
     def search(self, query , n_results :int = 4) -> List[np.Array, np.Array]:
         distances, inds = self.index.search(query, n_results) 
