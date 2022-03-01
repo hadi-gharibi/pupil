@@ -9,6 +9,7 @@ license = "Apache License 2.0"
 python = "^3.8"
 faiss-cpu = "^1.7.2"
 numpy = "^1.22.2"
+PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
 
