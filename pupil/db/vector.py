@@ -7,7 +7,7 @@ import yaml
 
 class BaseVectorDB(ABC):
     @abstractmethod
-    def train_ind(self,):
+    def train(self,):
         pass
 
     @abstractmethod
@@ -21,18 +21,18 @@ class BaseVectorDB(ABC):
 
 
 class Faiss(BaseVectorDB):
-    def __init__(self, emb_size:np.Array, nlist:int, nprobe:int)->None:
+    def __init__(self, emb_size:np.ndarray, nlist:int, nprobe:int)->None:
 
         quantizer = faiss.IndexFlatL2(emb_size)
         self.index = faiss.IndexIVFFlat(quantizer, emb_size, nlist)
         self.index.nprobe = nprobe
 
-    def train(self, embs: np.Array) -> None:
-        self.train(embs)
+    def train(self, embs: np.ndarray) -> None:
+        self.index.train(embs)
 
-    def add(self, emb: np.Array) -> None:
+    def add(self, emb: np.ndarray) -> None:
         self.index.add(emb)
 
-    def search(self, query , n_results :int = 4) -> List[np.Array, np.Array]:
+    def search(self, query , n_results :int = 4) -> List[np.ndarray]:
         distances, inds = self.index.search(query, n_results) 
         return distances, inds # [(self.index.ntotal, n_resutls),  (self.index.ntotal, n_resutls)]
