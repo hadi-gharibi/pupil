@@ -24,8 +24,14 @@ class BaseVectorDB(ABC):
 
 
 class Faiss(BaseVectorDB):
-    def __init__(self, emb_size):
-        self.index = faiss.IndexFlatL2(emb_size)
+    def __init__(self, emb_size:np.Array, nlist:int, nprobe:int)->None:
+
+        quantizer = faiss.IndexFlatL2(emb_size)
+        self.index = faiss.IndexIVFFlat(quantizer, emb_size, nlist)
+        self.index.nprobe = nprobe
+
+    def train(self, embs: np.Array) -> None:
+        self.train(embs)
 
     def add(self, emb:np.Array) -> None:
         self.index(emb)
