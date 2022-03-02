@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 import faiss
 import numpy as np
 from typing import List
-import yaml
-
 
 class BaseVectorDB(ABC):
     @abstractmethod
