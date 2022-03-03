@@ -12,6 +12,7 @@ numpy = "^1.22.2"
 PyYAML = "^6.0"
 pytest = "^7.0.1"
 scikit-learn = "^1.0.2"
+pandas = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.2.9"
