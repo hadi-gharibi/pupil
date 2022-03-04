@@ -15,7 +15,7 @@ class Clustering(Protocol):
     def distance_to_cluster_centers(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         ...
 
-class FaissKMeans:
+class FaissKMeansClustering:
     def __init__(self, 
                 n_clusters: int = FaissKMeansConfig.n_clusters, 
                 n_init:     int = FaissKMeansConfig.n_init, 
