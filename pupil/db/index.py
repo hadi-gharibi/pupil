@@ -3,7 +3,6 @@ from cProfile import label
 import pandas as pd
 from dataclasses import dataclass
 from typing import Any, Optional, Union
-from functools import wraps
 
 
 @dataclass
@@ -13,7 +12,7 @@ class RawData:
     path: Optional[str]
     label: Optional[Union[str, int]]
 
-class AbstractIndex(ABC):
+class BaseDB(ABC):
     @abstractmethod
     def add(self, X:RawData):
         pass
@@ -25,7 +24,7 @@ class AbstractIndex(ABC):
     def __getitem__(self, i):
         return self.get(i)
 
-class PandasDB(AbstractIndex):
+class PandasDB(BaseDB):
     def __init__(self, data:pd.DataFrame) -> None:
         if data.columns.tolist() != ['index', 'data', 'path', 'label']:
             raise ValueError("Your DataFrame columns must be `['index', 'data', 'path', 'label']`")
