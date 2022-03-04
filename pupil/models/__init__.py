@@ -1,1 +1,1 @@
-from .clustering import FaissKMeans, Distance1DSplitter
+from .clustering import FaissKMeansClustering, Distance1DSplitter

@@ -1,1 +1,1 @@
-from .vector import Faiss
+from .vector import FaissVectorDB

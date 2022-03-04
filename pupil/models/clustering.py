@@ -3,9 +3,19 @@ import faiss
 import numpy as np
 from pupil.models.config import FaissKMeansConfig
 from sklearn.cluster import AgglomerativeClustering
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Protocol
 
-class FaissKMeans:
+class Clustering(Protocol):
+    def fit(self, X:np.ndarray):
+        ...
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        ...
+
+    def distance_to_cluster_centers(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        ...
+
+class FaissKMeansClustering:
     def __init__(self, 
                 n_clusters: int = FaissKMeansConfig.n_clusters, 
                 n_init:     int = FaissKMeansConfig.n_init, 
@@ -13,7 +23,6 @@ class FaissKMeans:
         self.n_clusters = n_clusters
         self.n_init = n_init
         self.max_iter = max_iter
-        self.kmeans = None
         self.cluster_centers_ = None
         self.inertia_ = None
 

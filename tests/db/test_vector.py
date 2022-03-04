@@ -1,9 +1,8 @@
 import pyexpat
 import pytest
-from pupil.db import Faiss
+from pupil.db import FaissVectorDB
 from pupil.db.config import FaissConf
 import numpy as np
-import yaml
 
 EMB_SIZE = 64
 QUERY_NUMBERS = 100
@@ -29,7 +28,7 @@ def query_data():
 @pytest.fixture
 def faiss_db():
     conf = FaissConf()
-    db = Faiss(emb_size= EMB_SIZE, nlist=conf.nlist, nprobe=conf.nprobe)
+    db = FaissVectorDB(emb_size= EMB_SIZE, nlist=conf.nlist, nprobe=conf.nprobe)
     return db
 
 @pytest.fixture
