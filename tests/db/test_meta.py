@@ -1,6 +1,15 @@
 import pytest
-from pupil.db.index import PandasDB, RawData
+from pupil.db.meta import PandasDB
 import pandas as pd
+from typing import Any, Optional, Union, List, Any
+from dataclasses import dataclass
+
+@dataclass
+class RawData:
+    id: int
+    data: Any
+    path: Optional[str]
+    label: Optional[Union[str, int]]
 
 def test_pandasdb_creating():
     to_pass = pd.DataFrame([[1,None,'stat', 'sata'],[5, 12, 'end', 'dad']], columns=['index', 'data', 'path', 'label'])
