@@ -21,7 +21,7 @@ class Clustering(Protocol):
             X (NDArray2D): The input to check.
 
         Returns:
-            Tuple[NDArray2D, NDArray2D]: Return (Distances, cluster_id)
+            Tuple[NDArray2D, NDArray2D]: Return (Distances, cluster_ids). Shape of each: (#queries, #clusters)
         """
         ...
 
