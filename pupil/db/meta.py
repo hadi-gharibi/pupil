@@ -3,12 +3,11 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol, Union, List, Any, Dict
 import numpy as np
-from nptyping import NDArray
+from nptyping import NDArray, Int32
 import marshmallow_dataclass
 from marshmallow.schema import Schema
+from .config import IsDataclass
 
-class IsDataclass(Protocol):
-    __dataclass_fields__: Dict
 
 class MetaDataDB(Protocol):
     schema: Schema
@@ -19,9 +18,9 @@ class MetaDataDB(Protocol):
     def add(self, X: Any):
         ...
 
-    def get(self, index:Union[int, List[int], NDArray[(Any,), np.int32]]) -> List[IsDataclass]:
+    def get(self, index:Union[int, List[int], NDArray[(Any,), Int32]]) -> List[IsDataclass]:
         ...
-    def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), np.int32]]):
+    def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), Int32]]):
         ...
 
     def __len__(self):
@@ -46,7 +45,7 @@ class PandasDB:
         elif (self.df is not None) and (isinstance(data, pd.DataFrame)):
             self.df = pd.concat([self.df, data], axis=1)
 
-    def get(self, index:Union[int, List[int], NDArray[(Any,), np.int32]]) -> List[IsDataclass]:
+    def get(self, index:Union[int, List[int], NDArray[(Any,), Int32]]) -> List[IsDataclass]:
         
         if isinstance(index, (list, np.ndarray)):
             data = [self.get(i)[0] for i in index]
@@ -55,7 +54,7 @@ class PandasDB:
         
         return data
     
-    def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), np.int32]]):
+    def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), Int32]]):
         return self.get(i)
 
     def __len__(self):
