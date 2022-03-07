@@ -45,6 +45,6 @@ def test_faiss_add(faiss_trained_db, train_data):
 
 def test_faiss_search(faiss_trained_db, query_data):
     D, I = faiss_trained_db.search(query_data, 5)
-    assert len(D) == QUERY_NUMBERS
-    assert I.shape == (QUERY_NUMBERS ,5)
+    assert len(D) == 5
+    assert I.shape == (5,)
 

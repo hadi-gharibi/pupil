@@ -1,1 +1,1 @@
-from .pupil import Pupil
+from .pupil import PriorityGenerator
