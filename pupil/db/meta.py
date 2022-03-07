@@ -16,7 +16,7 @@ class MetaDataDB(Protocol):
     def __init__(self, schema: IsDataclass, label: str):
         ...
 
-    def add(self, X:pd.DataFrame):
+    def add(self, X: Any):
         ...
 
     def get(self, index:Union[int, List[int], NDArray[(Any,), np.int32]]) -> List[IsDataclass]:
