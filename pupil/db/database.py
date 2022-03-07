@@ -1,7 +1,8 @@
 from pupil.db.vector import NDArray2D, VectorDB
 from pupil.db.meta import MetaDataDB
-from typing import Any
-from .config import NDArray2D
+from typing import Any, List, Union
+from .config import NDArray2D, IsDataclass
+from nptyping import NDArray, Int32
 
 class DataBase:
     def __init__(self, vecdb: VectorDB, metadb:MetaDataDB):
@@ -30,14 +31,14 @@ class DataBase:
             'metadata' : self.metadb[i]
         }
 
-    def get(self, i, emb=True):
+    def get(self, i: Union[int, List[int], NDArray[(Any, ), Int32]], is_emb=True):
         res = {}
-        if emb :
+        if is_emb :
             res['embeddings'] = self.vecdb[i]
         res['metadata'] = self.metadb[i]
         return res
 
-    def embbeding_search(self, embeddings: NDArray2D, n_results):
+    def embbeding_search(self, embeddings: NDArray2D, n_results: int) -> List[List[IsDataclass]]:
         _, inds = self.vecdb.search(query = embeddings, n_results=n_results)
         res = [self.metadb[row] for row in inds]
         return res
