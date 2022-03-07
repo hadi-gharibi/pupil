@@ -2,17 +2,27 @@ from abc import ABC, abstractmethod
 import faiss
 import numpy as np
 from pupil.models.config import FaissKMeansConfig
+from pupil.db.config import NDArray2D
 from sklearn.cluster import AgglomerativeClustering
 from typing import Dict, Tuple, Protocol
 
 class Clustering(Protocol):
-    def fit(self, X:np.ndarray):
+    def fit(self, X: NDArray2D):
         ...
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def predict(self, X:NDArray2D) -> NDArray2D:
+
         ...
 
-    def distance_to_cluster_centers(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def distance_to_cluster_centers(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
+        """After having the center of your clusters, you can use this function to see the distance from X and center of all clusters 
+
+        Args:
+            X (NDArray2D): The input to check.
+
+        Returns:
+            Tuple[NDArray2D, NDArray2D]: Return (Distances, cluster_id)
+        """
         ...
 
 class FaissKMeansClustering:
@@ -26,7 +36,7 @@ class FaissKMeansClustering:
         self.cluster_centers_ = None
         self.inertia_ = None
 
-    def fit(self, X: np.ndarray) -> None:
+    def fit(self, X: NDArray2D) -> None:
         self.kmeans = faiss.Kmeans(
             d=X.shape[1],
             k=self.n_clusters,
@@ -37,19 +47,26 @@ class FaissKMeansClustering:
         self.cluster_centers_ = self.kmeans.centroids
         self.inertia_ = self.kmeans.obj[-1]
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def predict(self, X: NDArray2D) -> NDArray2D:
         return self.kmeans.index.search(X.astype(np.float32), 1)[1]
 
-    def distance_to_cluster_centers(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def distance_to_cluster_centers(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
         D, I = self.kmeans.index.search(X.astype(np.float32), self.n_clusters)
         return D, I
 
+
+class Splitter(Protocol):
+    def fit(self, X: NDArray2D, clsuter_inds: NDArray2D):
+        ...
+    @property
+    def splits(self,):
+        ...
 
 class Distance1DSplitter:
     def __init__(self, nsplits=3):
         self.nsplits = nsplits
 
-    def fit(self, X: np.ndarray, clsuter_inds) -> None:
+    def fit(self, X: NDArray2D, clsuter_inds: NDArray2D) -> None:
         self.clsuter_inds = clsuter_inds
         self.alg = AgglomerativeClustering(n_clusters=self.nsplits)
         self.alg.fit(X.reshape((-1,1)))
