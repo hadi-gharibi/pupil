@@ -1,25 +1,44 @@
 from abc import ABC, abstractmethod
-from ast import Raise
-from optparse import Option
 import faiss
+from typing import Tuple, Protocol, Optional, Union, Any
 import numpy as np
-from typing import Tuple, Protocol, Any, NewType, Optional
 from pupil.db.config import FaissConf
+from .config import NDArray2D
 from nptyping import NDArray
 
-NDArray2D = NewType("NDArray2D", NDArray[(Any, Any), Any]) # type: ignore
-
 class VectorDB(Protocol):
-    def train(self,):
+    def train(self, embeddings: NDArray2D) -> None:
+        """In case you need to train the index
+
+        Args:
+            embeddings (NDArray2D):
+        """
         ...
 
-    def search(self):
+    def search(self, query: NDArray2D, n_results :int = 4) -> Tuple[NDArray2D, NDArray2D]:
+        """Search embeddings
+
+        Args:
+            query (NDArray2D): Vectors to search
+            n_results (int, optional): Number of results per query. Defaults to 4.
+
+        Returns:
+            Tuple[NDArray2D, NDArray2D]: Return (Distances, indices)
+        """
         ...
 
-    def add(self):
+    def add(self, embeddings: NDArray2D) -> None:
+        """Add embeddings into the database
+
+        Args:
+            embeddings (NDArray2D):
+        """
         ...
     
     def __len__(self):
+        ...
+
+    def __getitem__(self, i):
         ...
 
 class FaissVectorDB:
@@ -40,7 +59,7 @@ class FaissVectorDB:
         self.embeddings = embeddings
         self.index.train(embeddings)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: Union[int, NDArray[(Any, ), np.int32]]):
         if self.embeddings is None:
             raise ValueError("First add data to the database.")
         return self.embeddings[i]
@@ -50,7 +69,7 @@ class FaissVectorDB:
 
     def search(self, query: NDArray2D, n_results :int = 4) -> Tuple[NDArray2D, NDArray2D]:
         distances, inds = self.index.search(query, n_results + 1) 
-        return distances[0, 1:], inds[0, 1:] # ((self.index.ntotal, n_resutls),  (self.index.ntotal, n_resutls))
+        return distances[:, 1:], inds[:, 1:] # ((self.index.ntotal, n_resutls),  (self.index.ntotal, n_resutls))
 
     def __len__(self,):
         return self.index.ntotal
