@@ -17,8 +17,7 @@ class DataBase:
         self._add_embeddings(embeddings)
 
     def _add_embeddings(self, embeddings):
-        self.vecdb.train(embeddings)
-        self.vecdb.add(embeddings)
+        self.vecdb.build_index(embeddings)
 
     def _add_metadata(self, data):
         self.metadb.add(data)
@@ -31,9 +30,9 @@ class DataBase:
             'metadata' : self.metadb[i]
         }
 
-    def get(self, i: Union[int, List[int], NDArray[(Any, ), Int32]], is_emb=True):
+    def get(self, i: Union[int, List[int], NDArray[(Any, ), Int32]], return_emb: bool=True):
         res = {}
-        if is_emb :
+        if return_emb :
             res['embeddings'] = self.vecdb[i]
         res['metadata'] = self.metadb[i]
         return res

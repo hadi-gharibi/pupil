@@ -1,3 +1,4 @@
+from cProfile import label
 import marshmallow_dataclass
 import pandas as pd
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from .config import IsDataclass
 
 class MetaDataDB(Protocol):
     schema: Schema
+    label: str
 
     def __init__(self, schema: IsDataclass, label: str):
         ...
@@ -24,6 +26,9 @@ class MetaDataDB(Protocol):
         ...
 
     def __len__(self):
+        ...
+
+    def set_label(self, i: int, input:Any):
         ...
 
 class PandasDB:
@@ -53,6 +58,9 @@ class PandasDB:
             data = self.schema.load( [self.df.iloc[index].to_dict()])
         
         return data
+
+    def set_label(self, i, inp):
+        self.df.iloc[i, self.df.columns.get_loc(self.label)] = inp
     
     def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), Int32]]):
         return self.get(i)
