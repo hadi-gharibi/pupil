@@ -1,16 +1,20 @@
-from abc import ABC, abstractmethod
-import faiss
-from typing import Tuple, Protocol, Optional, Union, Any, List
-import numpy as np
-from pupil.db.config import FaissConf
-from .config import NDArray2D, SimilarityType
-from nptyping import NDArray
 import math
+from abc import ABC, abstractmethod
+from typing import Any, List, Optional, Protocol, Tuple, Union
+
+import faiss
+import numpy as np
+from nptyping import NDArray
+from pupil.db.config import FaissConf
 from scipy import spatial
 
-class VectorDB(Protocol):
+from .config import NDArray2D, SimilarityType
 
-    def search(self, query: NDArray2D, n_results :int = 4) -> Tuple[NDArray2D, NDArray2D]:
+
+class VectorDB(Protocol):
+    def search(
+        self, query: NDArray2D, n_results: int = 4
+    ) -> Tuple[NDArray2D, NDArray2D]:
         """Search embeddings
 
         Args:
@@ -22,8 +26,8 @@ class VectorDB(Protocol):
         """
         ...
 
-    def train_index(self, embeddings: NDArray2D) -> None:
-        """Index the data 
+    def build_index(self, embeddings: NDArray2D) -> None:
+        """Index the data
 
         Args:
             embeddings (NDArray2D): _description_
@@ -37,29 +41,31 @@ class VectorDB(Protocol):
             embeddings (NDArray2D):
         """
         ...
-    
+
     def __len__(self):
         ...
 
     def __getitem__(self, i):
         ...
 
+
 class FaissVectorDB:
     def __init__(
-        self, 
+        self,
         similarity_metric: SimilarityType = FaissConf.similarity_type,
-        nlist: Optional[int] = FaissConf.nlist, 
-        nprobe:Optional[int] = FaissConf.nprobe
-        )->None:
+        nlist: Optional[int] = FaissConf.nlist,
+        nprobe: Optional[int] = FaissConf.nprobe,
+    ) -> None:
 
         self.similarity_metric = similarity_metric
         self.nlist = nlist
         self.nprobe = nprobe
-        
+
     def build_index(self, embeddings: NDArray2D) -> None:
 
         size, dim = embeddings.shape
-        if not self.nlist: self.nlist = min(4096, 8 * round(math.sqrt(size)))
+        if not self.nlist:
+            self.nlist = min(4096, 8 * round(math.sqrt(size)))
 
         if size < 4 * 10000:
             fac_str = "Flat"
@@ -70,9 +76,8 @@ class FaissVectorDB:
         else:
             fac_str = "IVF16384,PQ8"
 
-            
         self.index = faiss.index_factory(dim, fac_str, faiss.METRIC_INNER_PRODUCT)
-        self.index.nprobe = min(self.nprobe, self.nlist) # type: ignore
+        self.index.nprobe = min(self.nprobe, self.nlist)  # type: ignore
 
         if not self.index.is_trained:
             self.index.train(embeddings)
@@ -80,25 +85,47 @@ class FaissVectorDB:
             faiss.normalize_L2(embeddings)
         self.add(embeddings)
 
-    def __getitem__(self, i: Union[int, List[int], NDArray[(Any, ), np.int32]]):
+    def __getitem__(self, i: Union[int, List[int], NDArray[(Any,), np.int32]]):
+        if isinstance(i, slice):
+            start = i.start
+            if not start:
+                start = 0
+
+            stop = i.stop
+            if not stop:
+                stop = self.__len__()
+
+            step = i.step
+            if not step:
+                step = 1
+
+            i = list(range(start, stop, step))
+
         if not self.index.is_trained:
             raise ValueError("First add data to the database.")
 
-        if type(i) is not int: 
-            return np.vstack([self.__getitem__(ind) for ind in i]) # type: ignore
+        if type(i) is not int:
+            return np.vstack([self.__getitem__(ind) for ind in i])  # type: ignore
 
-        if hasattr(self.index, 'make_direct_map'):
+        if hasattr(self.index, "make_direct_map"):
             self.index.make_direct_map()
-        return self.index.reconstruct(i).reshape(1,-1).astype(np.float32)
+        return self.index.reconstruct(i).reshape(1, -1).astype(np.float32)
 
-    def add(self, emb: NDArray2D) -> None:
-        self.index.add(emb)
+    def add(self, embeddings: NDArray2D) -> None:
+        self.index.add(embeddings)
 
-    def search(self, query: NDArray2D, n_results :int = 4) -> Tuple[NDArray2D, NDArray2D]:
+    def search(
+        self, query: NDArray2D, n_results: int = 4
+    ) -> Tuple[NDArray2D, NDArray2D]:
         if self.similarity_metric == SimilarityType.COSINE:
             faiss.normalize_L2(query)
-        distances, inds = self.index.search(query, n_results + 1) 
-        return distances[:, 1:], inds[:, 1:] # ((self.index.ntotal, n_resutls),  (self.index.ntotal, n_resutls))
+        distances, inds = self.index.search(query, n_results + 1)
+        return (
+            distances[:, 1:],
+            inds[:, 1:],
+        )  # ((self.index.ntotal, n_resutls),  (self.index.ntotal, n_resutls))
 
-    def __len__(self,):
+    def __len__(
+        self,
+    ):
         return self.index.ntotal
