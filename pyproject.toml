@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pupil"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 description = "Active learning platform"
 authors = ["hadi-gharibi <hady.gharibi@gmail.com>"]
 license = "Apache License 2.0"
