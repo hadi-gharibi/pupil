@@ -52,10 +52,10 @@ class Annotator(ABC):
         self._buttons = self._labels_buttons(self.labels)
         self._labelbox = VBox(
             [
-                HTML(value=draw_line(40)),
+                HTML(value=draw_line(45)),
                 HTML(value="Labels: "),
                 HBox(self._buttons),
-                HTML(value=draw_line(40)),
+                HTML(value=draw_line(45)),
             ],  # type: ignore
             background_color="grey",
         )
@@ -77,7 +77,7 @@ class Annotator(ABC):
                         self._del_btn,
                     ]  # type: ignore
                 ),
-                HTML(value=draw_line(40)),
+                HTML(value=draw_line(45)),
             ]
         )
 
@@ -134,6 +134,9 @@ class Annotator(ABC):
 
     def _del_callback(self, a):
         self.labeld_data.pop(self._ind, None)
+        self._current_label.value = (
+            self._current_label.value
+        ) = f"Current label: <mark>{self.labeld_data.get(self._ind, None)}</mark>"
 
     def _back_callback(self, a) -> None:
         self._skip_btn.disabled = False
