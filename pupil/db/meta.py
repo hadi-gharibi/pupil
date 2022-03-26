@@ -40,6 +40,14 @@ class MetaDataDB(Protocol):
 
 class PandasDB:
     def __init__(self, schema: IsDataclass, label: str) -> None:
+        """_summary_
+
+        Args:
+            schema (IsDataclass): Dataclass that should describe the schema of data
+            label (str): Which column in your DataFrame is the label of data
+
+
+        """
         self.schema = marshmallow_dataclass.class_schema(schema)(many=True)  # type: ignore
         if label not in self.schema.fields.keys():
             raise ValueError(
@@ -68,6 +76,14 @@ class PandasDB:
     def get(
         self, index: Union[int, Iterable[int]]
     ) -> List[IsDataclass]:
+        """Get data from DataFram
+
+        Args:
+            index (Union[int, Iterable[int]]): Row number
+
+        Returns:
+            List[IsDataclass]: List of schema objects
+        """
         return self.__getitem__(index)
 
     def set_label(self, i: int, input: Any) -> None:
@@ -89,7 +105,19 @@ class PandasDB:
     def __len__(self) -> int:
         return len(self.df)
 
-    def filter(self, field:str, value:str) -> List[IsDataclass]:
+    def filter(self, field:str, value:Any) -> List[IsDataclass]:
+        """Filter data base on columns and values
+
+        Args:
+            field (str): Name of the column
+            value (str): Value to filter on
+
+        Raises:
+            ValueError: if field not in the columns
+
+        Returns:
+            List[IsDataclass]: List of schema objects
+        """
         if field not in (set(self.df.columns.tolist())):
             raise ValueError(f"{field} is not in the DataFrame columns")
         mask = self.df[field] == value
