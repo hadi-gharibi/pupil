@@ -1,6 +1,6 @@
-from cProfile import label
+from collections.abc import Iterable as abc_iterator
 from dataclasses import dataclass
-from typing import Any, List, Optional, Protocol, Union
+from typing import Any, Iterable, List, Optional, Protocol, Union
 
 import marshmallow_dataclass
 import numpy as np
@@ -22,12 +22,12 @@ class MetaDataDB(Protocol):
         ...
 
     def get(
-        self, index: Union[int, List[int], NDArray[(Any,), Int32]]
+        self, index:  Union[int, Iterable[int]]
     ) -> List[IsDataclass]:
         ...
 
     def __getitem__(
-        self, i: Union[int, List[int], NDArray[(Any,), Int32]]
+        self, i: Union[int, Iterable[int]]
     ) -> List[IsDataclass]:
         ...
 
@@ -45,43 +45,55 @@ class PandasDB:
             raise ValueError(
                 f"{label} must be in your schema. your schema has {[k for k in self.schema.fields.keys()]}"
             )
-        if "index" in self.schema.fields.keys():
-            raise ValueError("Please remove the `index` keyword from your schema")
+        #if "index" in self.schema.fields.keys():
+        #    raise ValueError("Please remove the `index` keyword from your schema")
         self.label = label
-        self.df = None
+        self.df = pd.DataFrame()
 
     def add(self, data: pd.DataFrame) -> None:
-        if (self.df is None) and (isinstance(data, pd.DataFrame)):
-            if self.label not in (set(data.columns.tolist())):
-                raise ValueError(f"Your DataFrame columns must have `{self.label}`")
-            self.df = pd.DataFrame(data)
+        """Add DataFrame to the database. It should contain the label column you passed to create the instance.
 
-        elif (self.df is not None) and (isinstance(data, pd.DataFrame)):
+        Args:
+            data (pd.DataFrame): 
+
+        """
+        if not isinstance(data, pd.DataFrame):
+            raise ValueError('Data need to be a DataFrame')
+        elif self.label not in (set(data.columns.tolist())):
+                raise ValueError(f"Your DataFrame columns must have `{self.label}`")
+        
+        elif (self.df.empty):
+            self.df = pd.DataFrame(data)
+        else:
             self.df = pd.concat([self.df, data], axis=1)
 
     def get(
-        self, index: Union[int, List[int], NDArray[(Any,), Int32]]
+        self, index: Union[int, Iterable[int]]
     ) -> List[IsDataclass]:
-
-        if isinstance(index, (list, np.ndarray)):
-            data = [self.get(i)[0] for i in index]
-        else:
-            data = self.schema.load([self.df.iloc[index].to_dict()])
-
-        return data  # type: ignore
+        return self.__getitem__(index)
 
     def set_label(self, i: int, input: Any) -> None:
         self.df.iloc[i, self.df.columns.get_loc(self.label)] = input
 
     def __getitem__(
-        self, i: Union[int, List[int], NDArray[(Any,), Int32]]
+        self, index:Union[int, Iterable[int], slice]
     ) -> List[IsDataclass]:
-        return self.get(i)
+        if isinstance(index, slice):
+            index = list(range(*index.indices(self.__len__()))) # type: ignore
+
+        if isinstance(index, abc_iterator):
+            data = [self.__getitem__(i)[0] for i in index]
+        else:
+            data = self.df.iloc[index]
+            data = self.schema.load([data.to_dict()])
+        return data # type: ignore
 
     def __len__(self) -> int:
         return len(self.df)
 
-    def filter(self, field, value):
+    def filter(self, field:str, value:str) -> List[IsDataclass]:
+        if field not in (set(self.df.columns.tolist())):
+            raise ValueError(f"{field} is not in the DataFrame columns")
         mask = self.df[field] == value
         inds = self.df[mask].index.to_list()
         return self.get(inds)
