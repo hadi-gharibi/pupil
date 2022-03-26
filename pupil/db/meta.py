@@ -25,9 +25,22 @@ class MetaDataDB(Protocol):
     def __getitem__(
         self, i: Union[int, Iterable[int]]
     ) -> List[IsDataclass]:
+        """Getting data with row number
+
+        Args:
+            i (Union[int, Iterable[int]]): Row numbers
+
+        Returns:
+            List[IsDataclass]: List of schema objects
+        """
         ...
 
     def __len__(self) -> int:
+        """Lenght of data
+
+        Returns:
+            int: _description_
+        """
         ...
 
     def set_label(self, i: int, input: Any) -> None:
