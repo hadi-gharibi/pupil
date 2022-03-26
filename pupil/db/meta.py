@@ -45,8 +45,6 @@ class PandasDB:
             raise ValueError(
                 f"{label} must be in your schema. your schema has {[k for k in self.schema.fields.keys()]}"
             )
-        #if "index" in self.schema.fields.keys():
-        #    raise ValueError("Please remove the `index` keyword from your schema")
         self.label = label
         self.df = pd.DataFrame()
 
