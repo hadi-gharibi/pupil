@@ -1,14 +1,10 @@
 from collections.abc import Iterable as abc_iterator
-from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Protocol, Union
+from typing import Any, Iterable, List, Protocol, Union
 
 import marshmallow_dataclass
-import numpy as np
 import pandas as pd
 from marshmallow.schema import Schema
-from nptyping import Int32, NDArray
-
-from .config import IsDataclass
+from pupil.types import IsDataclass
 
 
 class MetaDataDB(Protocol):
@@ -45,7 +41,7 @@ class PandasDB:
         Args:
             schema (IsDataclass): Dataclass that should describe the schema of data
             label (str): Which column in your DataFrame is the label of data
-
+        
 
         """
         self.schema = marshmallow_dataclass.class_schema(schema)(many=True)  # type: ignore
