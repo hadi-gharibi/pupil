@@ -1,5 +1,5 @@
 import math
-from typing import Iterable, Optional, Protocol, Tuple, Union
+from typing import Optional, Protocol, Sequence, Tuple, Union
 
 import faiss
 import numpy as np
@@ -43,10 +43,10 @@ class VectorDB(Protocol):
         """
         ...
 
-    def __len__(self):
+    def __len__(self) -> int:
         ...
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: Union[int, Sequence[int], slice]) -> np.ndarray:
         ...
 
 
@@ -86,7 +86,7 @@ class FaissVectorDB:
             faiss.normalize_L2(embeddings)
         self.add(embeddings)
 
-    def __getitem__(self, i: Union[int, Iterable[int], slice]):
+    def __getitem__(self, i: Union[int, Sequence[int], slice]) -> np.ndarray:
         if isinstance(i, slice):
             i = list(range(*i.indices(self.__len__()))) # type: ignore
 
@@ -130,5 +130,5 @@ class FaissVectorDB:
 
     def __len__(
         self,
-    ):
+    ) -> int:
         return self.index.ntotal
