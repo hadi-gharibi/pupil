@@ -3,9 +3,8 @@ from typing import Any, Callable, List, Union
 from nptyping import Int32, NDArray
 from pandas import DataFrame
 from pupil.db.meta import MetaDataDB, PandasDB
-from pupil.db.vector import FaissVectorDB, NDArray2D, VectorDB
-
-from .config import IsDataclass, NDArray2D
+from pupil.db.vector import FaissVectorDB, VectorDB
+from pupil.types import IsDataclass, NDArray2D
 
 
 class DataBase:
@@ -46,7 +45,8 @@ class DataBase:
     def __getitem__(self, i):
         if len(self.vecdb) != len(self.metadb):  # type: ignore
             raise ValueError(
-                f"You have {len(self.vecdb)} data in your VectorDB and {len(self.metadb)} data in your MetaDB. These should be same."  # type: ignore
+                f'You have {len(self.vecdb)} data in your VectorDB and {len(self.metadb)} ',
+                'data in your MetaDB. These should be same.'  # type: ignore
             )
         return {"embeddings": self.vecdb[i], "metadata": self.metadb[i]}
 
