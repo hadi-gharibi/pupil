@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from functools import partial
-from typing import Any, List
+from typing import Any, List, Sequence
 
 from IPython.display import display
 from ipywidgets import HTML, Button, Dropdown, HBox, Image, Output, VBox
-from numpy import disp
 
 from pupil.db.database import DataBase
 
@@ -20,24 +19,34 @@ draw_line = (
 show_txt_data = (
     lambda txt: f"""
     <h1 style="color:grey;font-size:130%;">Data:</h1>
-    
+
     <b style="color:black;">{txt}</b>
 """
 )
 
 
-def show_img_data(path):
+def show_img_data(path:str) -> bytes:
+    """Read image.
+
+    Args:
+        path (str): path to the file
+
+    Returns:
+        bytes:
+    """
     file = open(path, "rb")
     image = file.read()
     return image
 
 
 class DataType(Enum):
+    "Types of the data you have. Act as a selector"
     TEXT = auto()
     IMAGE = auto()
 
 
 class Annotator(ABC):
+    "Annotator class for Jupyter lab"
     def __init__(
         self,
         labels: List[str],
@@ -45,8 +54,6 @@ class Annotator(ABC):
     ) -> None:
 
         self.labels = labels
-        # self.col_name = data_col_name
-        # self.db = db
         self._output = Output()
         # LabelsBox
         self._buttons = self._labels_buttons(self.labels)
@@ -54,7 +61,7 @@ class Annotator(ABC):
             [
                 HTML(value=draw_line(45)),
                 HTML(value="Labels: "),
-                HBox(self._buttons),
+                HBox(self._buttons), # type: ignore
                 HTML(value=draw_line(45)),
             ],  # type: ignore
             background_color="grey",
@@ -103,7 +110,7 @@ class Annotator(ABC):
 
         self.labeld_data = {}
 
-    def _drop_down(self, options: List[str]) -> List:
+    def _drop_down(self, options: Sequence[str]) -> List:
         self.dd = Dropdown(options=options)
         btn = Button(description="submit", button_style="primary")
         btn.on_click(partial(self._submit_callback, value=self.dd))
@@ -176,7 +183,7 @@ class Annotator(ABC):
             self._output.clear_output()
             self._output.append_stdout("No more data to show")
 
-    def annotate(self, inds: List[int]):
+    def annotate(self, inds: Sequence[int]):
         self._ind = None
         self._n = -1
         self._inds = inds
@@ -185,6 +192,9 @@ class Annotator(ABC):
         display(self._actions_box)
         self._show_next()
 
+    def __call__(self, inds: Sequence[int]):
+        self.annotate(inds = inds)
+        
     @abstractmethod
     def get_data(self, i) -> str:
         pass

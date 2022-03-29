@@ -1,2 +1,2 @@
-from .annotator import DataFrameAnnotator, PupilDBAnnotator
+from .annotation import DataFrameAnnotator, PupilDBAnnotator
 from .pupil import PriorityGenerator
