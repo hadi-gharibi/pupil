@@ -11,20 +11,16 @@ class MetaDataDB(Protocol):
     schema: Schema
     label: str
 
-    def __init__(self, schema: IsDataclass, label: str):
+    def __init__(self, schema: IsDataclass, label: str) -> None:
         ...
 
     def add(self, data: Any):
         ...
 
-    def get(
-        self, index:  Union[int, Iterable[int]]
-    ) -> List[IsDataclass]:
+    def get(self, index: Union[int, Iterable[int]]) -> List[IsDataclass]:
         ...
 
-    def __getitem__(
-        self, i: Union[int, Iterable[int]]
-    ) -> List[IsDataclass]:
+    def __getitem__(self, index: Union[int, Iterable[int], slice]) -> List[IsDataclass]:
         """Getting data with row number
 
         Args:
@@ -54,7 +50,7 @@ class PandasDB:
         Args:
             schema (IsDataclass): Dataclass that should describe the schema of data
             label (str): Which column in your DataFrame is the label of data
-        
+
 
         """
         self.schema = marshmallow_dataclass.class_schema(schema)(many=True)  # type: ignore
@@ -69,22 +65,20 @@ class PandasDB:
         """Add DataFrame to the database. It should contain the label column you passed to create the instance.
 
         Args:
-            data (pd.DataFrame): 
+            data (pd.DataFrame):
 
         """
         if not isinstance(data, pd.DataFrame):
-            raise ValueError('Data need to be a DataFrame')
+            raise ValueError("Data need to be a DataFrame")
         elif self.label not in (set(data.columns.tolist())):
-                raise ValueError(f"Your DataFrame columns must have `{self.label}`")
-        
-        elif (self.df.empty):
+            raise ValueError(f"Your DataFrame columns must have `{self.label}`")
+
+        elif self.df.empty:
             self.df = pd.DataFrame(data)
         else:
             self.df = pd.concat([self.df, data], axis=1)
 
-    def get(
-        self, index: Union[int, Iterable[int]]
-    ) -> List[IsDataclass]:
+    def get(self, index: Union[int, Iterable[int]]) -> List[IsDataclass]:
         """Get data from DataFram
 
         Args:
@@ -98,23 +92,21 @@ class PandasDB:
     def set_label(self, i: int, input: Any) -> None:
         self.df.iloc[i, self.df.columns.get_loc(self.label)] = input
 
-    def __getitem__(
-        self, index:Union[int, Iterable[int], slice]
-    ) -> List[IsDataclass]:
+    def __getitem__(self, index: Union[int, Iterable[int], slice]) -> List[IsDataclass]:
         if isinstance(index, slice):
-            index = list(range(*index.indices(self.__len__()))) # type: ignore
+            index = list(range(*index.indices(self.__len__())))  # type: ignore
 
         if isinstance(index, abc_iterator):
             data = [self.__getitem__(i)[0] for i in index]
         else:
             data = self.df.iloc[index]
             data = self.schema.load([data.to_dict()])
-        return data # type: ignore
+        return data  # type: ignore
 
     def __len__(self) -> int:
         return len(self.df)
 
-    def filter(self, field:str, value:Any) -> List[IsDataclass]:
+    def filter(self, field: str, value: Any) -> List[IsDataclass]:
         """Filter data base on columns and values
 
         Args:
