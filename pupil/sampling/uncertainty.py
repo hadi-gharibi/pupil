@@ -72,6 +72,7 @@ def entropy_based(prob_dist: np.ndarray) -> np.ndarray:
 class UncertaintySampler:
     def __init__(self, sampling_strategy: Callable[[np.ndarray], np.ndarray]):
         self.sampling_strategy = sampling_strategy
+        self.indices_ = None
 
     @classmethod
     def from_strategy(cls, strategy: str) -> UncertaintySampler:
@@ -97,6 +98,10 @@ class UncertaintySampler:
             raise ValueError(f"{strategy} must be one of {strategies}")
         return cls(eval(strategy))
 
-    def __call__(self, prob_dist: np.ndarray) -> np.ndarray:
+    def __call__(self, prob_dist: np.ndarray) -> UncertaintySampler:
+        self.fit(prob_dist)
+        return self.indices_  # type: ignore
+
+    def fit(self, prob_dist: np.ndarray) -> None:
         ranks = self.sampling_strategy(prob_dist)
-        return np.flip(ranks.argsort())
+        self.indices_ = np.flip(ranks.argsort())
