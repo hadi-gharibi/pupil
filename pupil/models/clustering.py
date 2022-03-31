@@ -3,16 +3,17 @@ from typing import Dict, Protocol, Tuple
 
 import faiss
 import numpy as np
-from pupil.db.config import NDArray2D
-from pupil.models.config import FaissKMeansConfig
+from pupil.types import NDArray2D
 from sklearn.cluster import AgglomerativeClustering
 
 
 class Clustering(Protocol):
+    n_clusters: int
+
     def fit(self, X: NDArray2D):
         ...
 
-    def predict(self, X: NDArray2D) -> NDArray2D:
+    def predict(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
 
         ...
 
@@ -31,9 +32,9 @@ class Clustering(Protocol):
 class FaissKMeansClustering:
     def __init__(
         self,
-        n_clusters: int = FaissKMeansConfig.n_clusters,
-        n_init: int = FaissKMeansConfig.n_init,
-        max_iter: int = FaissKMeansConfig.max_iter,
+        n_clusters: int,
+        n_init: int = 10,
+        max_iter: int = 100,
     ) -> None:
         self.n_clusters = n_clusters
         self.n_init = n_init
@@ -52,8 +53,8 @@ class FaissKMeansClustering:
         self.cluster_centers_ = self.kmeans.centroids
         self.inertia_ = self.kmeans.obj[-1]
 
-    def predict(self, X: NDArray2D) -> NDArray2D:
-        return self.kmeans.index.search(X.astype(np.float32), 1)[1]
+    def predict(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
+        return self.kmeans.index.search(X.astype(np.float32), 1)
 
     def distance_to_cluster_centers(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
         D, I = self.kmeans.index.search(X.astype(np.float32), self.n_clusters)
