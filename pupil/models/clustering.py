@@ -54,10 +54,10 @@ class FaissKMeansClustering:
         self.inertia_ = self.kmeans.obj[-1]
 
     def predict(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
-        return self.kmeans.index.search(X.astype(np.float32), 1)
+        return self.kmeans.index.search(X.astype(np.float32), 1)  # type: ignore
 
     def distance_to_cluster_centers(self, X: NDArray2D) -> Tuple[NDArray2D, NDArray2D]:
-        D, I = self.kmeans.index.search(X.astype(np.float32), self.n_clusters)
+        D, I = self.kmeans.index.search(X.astype(np.float32), self.n_clusters)  # type: ignore
         return D, I
 
 
