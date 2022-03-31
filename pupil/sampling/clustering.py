@@ -5,7 +5,7 @@ from pupil.models.clustering import Clustering, FaissKMeansClustering
 from pupil.types import NDArray2D
 
 
-class ClusterSampler:
+class ClusteringSampler:
     """
     Clustering sampling:
     1. Get the closest data to centroids
@@ -145,6 +145,6 @@ if __name__ == "__main__":
         n_samples=20, centers=centers, cluster_std=0.7, random_state=42
     )
     c = FaissKMeansClustering(n_clusters=3)
-    sampler = ClusterSampler(clustering_model=c)
+    sampler = ClusteringSampler(clustering_model=c)
     r = sampler(X)
     print(r)
