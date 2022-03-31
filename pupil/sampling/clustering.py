@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Dict, List, TypeVar
 
 import numpy as np
@@ -6,6 +8,7 @@ from pupil.types import NDArray2D
 
 
 class ClusteringSampler:
+
     """
     Clustering sampling:
     1. Get the closest data to centroids
@@ -18,8 +21,9 @@ class ClusteringSampler:
     def __init__(
         self,
         clustering_model: Clustering,
-    ):
+    ) -> None:
         self.clustering_model = clustering_model
+        self.indices_ = None
 
     def _distance_clusters(
         self, n_clusters: int, distances: np.ndarray, clusters: np.ndarray
@@ -120,11 +124,7 @@ class ClusteringSampler:
         dist, clusters = [a.flatten() for a in self.clustering_model.predict(X)]
         return dist, clusters
 
-    def __call__(
-        self,
-        X: NDArray2D,
-    ):
-        dist, clusters = self._fit(X)
+    def _create_indices(self, dist, clusters):
         cluster_inds = self._distance_clusters(
             self.clustering_model.n_clusters, dist, clusters
         )
@@ -136,15 +136,19 @@ class ClusteringSampler:
 
         return centeroids + outlier + rnd
 
+    def fit(self, X: NDArray2D) -> None:
+        dist, clusters = self._fit(X)
+        self.indices_ = self._create_indices(dist, clusters)
+
 
 if __name__ == "__main__":
     from sklearn.datasets import make_blobs
 
     centers = [[1, 1], [-1, -1], [1, -1]]
-    X, labels_true = make_blobs(
+    X, labels_true = make_blobs(  # type: ignore
         n_samples=20, centers=centers, cluster_std=0.7, random_state=42
     )
     c = FaissKMeansClustering(n_clusters=3)
     sampler = ClusteringSampler(clustering_model=c)
-    r = sampler(X)
+    r = sampler.fit(X)
     print(r)
