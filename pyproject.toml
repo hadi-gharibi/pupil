@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pupil"
-version = "0.2.0-alpha.0"
+version = "0.2.0"
 description = "Active learning platform"
 authors = ["hadi-gharibi <hady.gharibi@gmail.com>"]
 license = "Apache License 2.0"
@@ -17,6 +17,14 @@ marshmallow-dataclass = "^8.5.3"
 nptyping = "^1.4.4"
 typeguard = "^2.13.3"
 ipywidgets = "^7.7.0"
+myst-parser = {version = "^0.17.0", optional = true}
+Sphinx = {version = "^4.5.0", optional = true}
+nbsphinx = {version = "^0.8.8", optional = true}
+Jinja2 = {version = "3.0.3", optional = true}
+sphinxcontrib-napoleon = {version = "^0.7", optional = true}
+pandoc = {version = "^2.1", optional = true}
+sphinx-rtd-theme = {version = "^1.0.0", optional = true}
+colorama = {version = "^0.4.4", optional = true}
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.2.9"
@@ -29,14 +37,6 @@ flake8-docstrings = "^1.6.0"
 tox = "^3.24.5"
 tox-poetry-installer = {extras = ["poetry"], version = "^0.8.3"}
 pytest-lazy-fixture = "^0.6.3"
-Sphinx = "^4.5.0"
-myst-parser = "^0.17.0"
-nbsphinx = "^0.8.8"
-Jinja2 = "3.0.3"
-pandoc = "^2.1"
-sphinxcontrib-napoleon = "^0.7"
-sphinx-rtd-theme = "^1.0.0"
-colorama = "^0.4.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -50,4 +50,13 @@ max-line-length = 88
 extended-ignore = "E203"
 
 [tool.poetry.extras]
-docs = ["sphinx", "myst_parser", "nbsphinx", "Jinja2", "sphinxcontrib-napoleon"]
+docs = [
+    "sphinx", 
+    "myst-parser", 
+    "nbsphinx", 
+    "Jinja2=3.0.3", 
+    "sphinxcontrib-napoleon",
+    "pandoc",
+    "sphinx-rtd-theme", 
+    "colorama",
+]
