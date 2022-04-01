@@ -50,4 +50,4 @@ max-line-length = 88
 extended-ignore = "E203"
 
 [tool.poetry.extras]
-docs = ["sphinx","myst-parser", "nbsphinx", "Jinja2","sphinxcontrib-napoleon"]
+docs = ["sphinx", "myst_parser", "nbsphinx", "Jinja2", "sphinxcontrib-napoleon"]
