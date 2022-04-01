@@ -8,11 +8,12 @@ from pupil.types import Distance, NDArray2D
 
 class VectorDB(Protocol):
     """Vector database to save the embeddings and fast distance calculation.
-    Normal usage: 
+    Normal usage:
         1. Create object
         2. `build_index`
         3. `add` embeddings
     """
+
     def search(
         self, query: NDArray2D, n_results: int = 4
     ) -> Tuple[NDArray2D, NDArray2D]:
@@ -54,7 +55,7 @@ class FaissVectorDB:
     def __init__(
         self,
         similarity_metric: Distance = Distance.COSINE,
-        nlist: Optional[int] = None ,
+        nlist: Optional[int] = None,
         nprobe: Optional[int] = 5,
     ) -> None:
 
@@ -88,7 +89,7 @@ class FaissVectorDB:
 
     def __getitem__(self, i: Union[int, Sequence[int], slice]) -> np.ndarray:
         if isinstance(i, slice):
-            i = list(range(*i.indices(self.__len__()))) # type: ignore
+            i = list(range(*i.indices(self.__len__())))  # type: ignore
 
         if not self.index.is_trained:
             raise ValueError("First add data to the database.")
@@ -104,8 +105,9 @@ class FaissVectorDB:
         """Add embeddings into the database
 
         Args:
-            embeddings (NDArray2D):
+            embeddings (NDArray2D): _description_
         """
+
         self.index.add(embeddings)
 
     def search(
