@@ -5,7 +5,7 @@ build:
   tools:
     python: "3.8"
 
-shpinx:
+sphinx:
   configuration: docs/source/conf.py
 
 python:
