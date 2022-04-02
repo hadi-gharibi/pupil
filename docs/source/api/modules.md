@@ -1,4 +1,4 @@
-# Package API
+# modules
 
 ```{toctree}
 :maxdepth: 4
