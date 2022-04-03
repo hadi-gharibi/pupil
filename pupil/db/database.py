@@ -1,10 +1,17 @@
-from typing import Any, Callable, List, Union
+from __future__ import annotations
 
-from nptyping import Int32, NDArray
+from typing import Any, Callable, List, Optional, TypedDict, Union
+
+from nptyping import NDArray
 from pandas import DataFrame
 from pupil.db.meta import MetaDataDB, PandasDB
 from pupil.db.vector import FaissVectorDB, VectorDB
 from pupil.types import IsDataclass, NDArray2D
+
+
+class GetDatabase(TypedDict):
+    metadata: Optional[List[IsDataclass]]
+    embeddings: Optional[NDArray2D]
 
 
 class DataBase:
@@ -45,23 +52,26 @@ class DataBase:
     def __getitem__(self, i):
         if len(self.vecdb) != len(self.metadb):  # type: ignore
             raise ValueError(
-                f'You have {len(self.vecdb)} data in your VectorDB and {len(self.metadb)} ',
-                'data in your MetaDB. These should be same.'  # type: ignore
+                f"You have {len(self.vecdb)} data in your VectorDB and {len(self.metadb)} ",
+                "data in your MetaDB. These should be same.",  # type: ignore
             )
         return {"embeddings": self.vecdb[i], "metadata": self.metadb[i]}
 
     def get(
-        self, i: Union[int, List[int], NDArray[(Any,), Int32]], return_emb: bool = True  # type: ignore
-    ):
-        res = {}
-        if return_emb:
+        self,
+        i: Union[int, List[int], NDArray[(Any,), Int32]],  # type: ignore
+        return_embeddings: bool = False,
+        return_metadata: bool = True,
+    ) -> GetDatabase:
+        res: GetDatabase = {"embeddings": None, "metadata": None}
+        if return_embeddings:
             res["embeddings"] = self.vecdb[i]
-        res["metadata"] = self.metadb[i]
+        if return_metadata:
+            res["metadata"] = self.metadb[i]
         return res
 
     def embbeding_search(
         self, embeddings: NDArray2D, n_results: int
-    ) -> List[List[IsDataclass]]:
+    ) -> NDArray2D:  # type: ignore
         _, inds = self.vecdb.search(query=embeddings, n_results=n_results)
-        res = [self.metadb[row] for row in inds]
-        return res
+        return inds
