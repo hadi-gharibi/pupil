@@ -4,7 +4,7 @@ from functools import partial
 from typing import Any, List, Sequence
 
 from IPython.display import display
-from ipywidgets import HTML, Button, Dropdown, HBox, Image, Output, VBox
+from ipywidgets import HTML, Button, Dropdown, HBox, Image, IntProgress, Output, VBox
 
 from pupil.db.database import DataBase
 
@@ -25,7 +25,7 @@ show_txt_data = (
 )
 
 
-def show_img_data(path:str) -> bytes:
+def show_img_data(path: str) -> bytes:
     """Read image.
 
     Args:
@@ -47,6 +47,7 @@ class DataType(Enum):
 
 class Annotator(ABC):
     "Annotator class for Jupyter lab"
+
     def __init__(
         self,
         labels: List[str],
@@ -55,13 +56,14 @@ class Annotator(ABC):
 
         self.labels = labels
         self._output = Output()
+        self._precentage_output = Output()
         # LabelsBox
         self._buttons = self._labels_buttons(self.labels)
         self._labelbox = VBox(
             [
                 HTML(value=draw_line(45)),
                 HTML(value="Labels: "),
-                HBox(self._buttons), # type: ignore
+                HBox(self._buttons),  # type: ignore
                 HTML(value=draw_line(45)),
             ],  # type: ignore
             background_color="grey",
@@ -108,7 +110,7 @@ class Annotator(ABC):
         self._actions_box = VBox([self._labelbox, self._controlbox])  # type: ignore
         self._data_box = VBox([self._current_labelbox, self._show_data])  # type: ignore
 
-        self.labeld_data = {}
+        self.labeled_data = {}
 
     def _drop_down(self, options: Sequence[str]) -> List:
         self.dd = Dropdown(options=options)
@@ -134,16 +136,21 @@ class Annotator(ABC):
             buttons = self._toggle_button(options)
         return buttons  # type: ignore
 
+    def _show_percent(self):
+        with self._precentage_output:
+            self._precentage_output.clear_output()
+            print(f"{(100 * self._n / self._max_n):.2f}%")
+
     def _set_btn(self, callback, **kwargs):
         btn = Button(**kwargs)
         btn.on_click(callback)
         return btn
 
     def _del_callback(self, a):
-        self.labeld_data.pop(self._ind, None)
+        self.labeled_data.pop(self._ind, None)
         self._current_label.value = (
             self._current_label.value
-        ) = f"Current label: <mark>{self.labeld_data.get(self._ind, None)}</mark>"
+        ) = f"Current label: <mark>{self.labeled_data.get(self._ind, None)}</mark>"
 
     def _back_callback(self, a) -> None:
         self._skip_btn.disabled = False
@@ -151,13 +158,16 @@ class Annotator(ABC):
             self._back_btn.disabled = True
             return
         self._n -= 1
+        self._progress.value = self._n
+        self._show_percent()
+
         self._ind = self._inds[self._n]
         self._disp(self._ind)
 
     def _submit_callback(self, b, value: Any) -> None:
         if hasattr(value, "value"):
             value = value.value
-        self.labeld_data[self._ind] = value
+        self.labeled_data[self._ind] = value
         self._back_btn.disabled = False
         self._show_next()
 
@@ -168,7 +178,7 @@ class Annotator(ABC):
     def _disp(self, ind: int) -> None:
         data = self.get_data(ind)
         self._current_label.value = (
-            f"Current label: <mark>{self.labeld_data.get(self._ind, None)}</mark>"
+            f"Current label: <mark>{self.labeled_data.get(self._ind, None)}</mark>"
         )
         self._show_data.value = self._set_data(data)
         display(self._data_box)
@@ -177,24 +187,40 @@ class Annotator(ABC):
         if self._n < self._max_n:
             self._n += 1
             self._ind = self._inds[self._n]
+            self._progress.value = self._n + 1
+
             self._disp(self._ind)
         else:
             self._skip_btn.disabled = True
             self._output.clear_output()
             self._output.append_stdout("No more data to show")
 
+        self._show_percent()
+
     def annotate(self, inds: Sequence[int]):
         self._ind = None
         self._n = -1
         self._inds = inds
         self._max_n = len(inds)
-
+        # progressbar
+        self._progress = IntProgress(
+            value=0,
+            min=0,
+            max=self._max_n,
+            description="Labeled:",
+            bar_style="info",
+            # ={"bar_color": "#ffff00"},
+            orientation="horizontal",
+        )
+        #
+        self._precentage_box = HBox([self._progress, self._precentage_output])  # type: ignore
+        display(self._precentage_box)
         display(self._actions_box)
         self._show_next()
 
     def __call__(self, inds: Sequence[int]):
-        self.annotate(inds = inds)
-        
+        self.annotate(inds=inds)
+
     @abstractmethod
     def get_data(self, i) -> str:
         pass
