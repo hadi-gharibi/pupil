@@ -103,6 +103,15 @@ class PandasDB:
             data = self.schema.load([data.to_dict()])
         return data  # type: ignore
 
+    def __setitem__(self, index: Union[int, Iterable[int], slice], value) -> None:
+        if isinstance(index, slice):
+            index = list(range(*index.indices(self.__len__())))  # type: ignore
+
+        if isinstance(index, abc_iterator):
+            [self.__setitem__(i, value) for i in index]
+        else:
+            self.set_label(index, value)
+
     def __len__(self) -> int:
         return len(self.df)
 
@@ -124,3 +133,9 @@ class PandasDB:
         mask = self.df[field] == value
         inds = self.df[mask].index.to_list()
         return self.get(inds)
+
+    @property
+    def is_labeled(
+        self,
+    ):
+        return ~self.df[self.label].isna()
