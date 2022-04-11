@@ -126,7 +126,7 @@ class ClusteringSampler:
         """
         self.clustering_model.fit(X)
 
-    def _predict(self, X: NDArray2D) -> Tuple[np.ndarray, np.ndarray]:
+    def predict(self, X: NDArray2D) -> Tuple[np.ndarray, np.ndarray]:
         """
 
         Args:
@@ -145,7 +145,7 @@ class ClusteringSampler:
             X (NDArray2D):
         """
         self._fit(X)
-        return self._predict(X)
+        return self.predict(X)
 
     def _create_indices(self, dist, clusters):
         cluster_inds = self._create_masked_cluster_dists(
