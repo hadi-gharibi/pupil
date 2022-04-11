@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple
+
 import numpy as np
 from pupil.models.clustering import Clustering, FaissKMeansClustering
 from pupil.types import NDArray2D
@@ -23,7 +25,7 @@ class ClusteringSampler:
         self.clustering_model = clustering_model
         self.indices_ = None
 
-    def _distance_clusters(
+    def _create_masked_cluster_dists(
         self, n_clusters: int, distances: np.ndarray, clusters: np.ndarray
     ) -> NDArray2D:
         """For eaech cluster number in the list of inds ordered by their distance
@@ -35,8 +37,12 @@ class ClusteringSampler:
             classes (np.ndarray): Cluster number fo each data
 
         Returns:
-             NDArray2D: Row number represent the cluster number. In each row for each index you see
+             masked NDArray2D: Row number represent the cluster number. In each row for each index you see
              the distance between that data point to the center of the cluster
+             e.g.
+             [[0.13 0.10 0.35 - - - - - 0.25 -    -    - -    0.91 1.21 -    -   1.06 -    -]
+              [-    -    -    - - - - - -    0.19 0.28 - 0.35 -    -    0.35 0.47 -   0.92 -]
+              this show first 2 clusters and we have 20 data points.
         """
 
         cluster_inds = None
@@ -65,7 +71,7 @@ class ClusteringSampler:
         cols = ~inds.mask.sum(axis=1)
         return inds[list(range(inds.shape[0])), cols]
 
-    def _order_inds(self, inds):
+    def _sort_masked_cluster_dists(self, inds):
         """order args inside each clsuter
 
         Args:
@@ -112,21 +118,40 @@ class ClusteringSampler:
         inds = inds.flatten()
         return inds[inds != 999]
 
-    def _fit(self, X: NDArray2D):
+    def _fit(self, X: NDArray2D) -> None:
         """fit the clsutering model
+
+        Args:
+            X (NDArray2D): data
+        """
+        self.clustering_model.fit(X)
+
+    def _predict(self, X: NDArray2D) -> Tuple[np.ndarray, np.ndarray]:
+        """
+
+        Args:
+            X (NDArray2D): _description_
+
+        Returns:
+            Tuple[NDArray2D, NDArray2D]: tuple(distances , cluster_ids)
+        """
+        dist, clusters = [a.flatten() for a in self.clustering_model.predict(X)]
+        return dist, clusters
+
+    def _fit_predict(self, X: NDArray2D):
+        """
 
         Args:
             X (NDArray2D):
         """
-        self.clustering_model.fit(X)
-        dist, clusters = [a.flatten() for a in self.clustering_model.predict(X)]
-        return dist, clusters
+        self._fit(X)
+        return self._predict(X)
 
     def _create_indices(self, dist, clusters):
-        cluster_inds = self._distance_clusters(
+        cluster_inds = self._create_masked_cluster_dists(
             self.clustering_model.n_clusters, dist, clusters
         )
-        ordered_cluster_inds = self._order_inds(cluster_inds)
+        ordered_cluster_inds = self._sort_masked_cluster_dists(cluster_inds)
 
         centeroids = self._get_centroids(ordered_cluster_inds).tolist()
         outlier = self._get_outliers(ordered_cluster_inds).tolist()
@@ -135,7 +160,7 @@ class ClusteringSampler:
         return centeroids + outlier + rnd
 
     def fit(self, X: NDArray2D) -> None:
-        dist, clusters = self._fit(X)
+        dist, clusters = self._fit_predict(X)
         self.indices_ = self._create_indices(dist, clusters)
 
 
@@ -147,6 +172,8 @@ if __name__ == "__main__":
         n_samples=20, centers=centers, cluster_std=0.7, random_state=42
     )
     c = FaissKMeansClustering(n_clusters=3)
+
     sampler = ClusteringSampler(clustering_model=c)
     r = sampler.fit(X)
-    print(r)
+
+    # print(r)
