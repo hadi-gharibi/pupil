@@ -1,4 +1,5 @@
 import math
+from collections.abc import Iterable
 from typing import Optional, Protocol, Sequence, Tuple, Union
 
 import faiss
@@ -94,7 +95,10 @@ class FaissVectorDB:
         if not self.index.is_trained:
             raise ValueError("First add data to the database.")
 
-        if not isinstance(i, int):
+        if isinstance(i, np.ndarray):
+            i = i.tolist()  # type: ignore
+
+        if isinstance(i, Iterable):
             return np.vstack([self.__getitem__(ind) for ind in i])
 
         if hasattr(self.index, "make_direct_map"):
